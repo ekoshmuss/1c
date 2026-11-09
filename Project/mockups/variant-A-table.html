@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Остатки реагентов — Вариант A</title>
+<style>
+  :root{--bg:#f4f6f9;--card:#fff;--ink:#1d2433;--muted:#6b7385;--line:#e3e7ee;--accent:#1f5fbf;
+        --green:#2e9d5b;--green-bg:#e6f5ec;--yellow:#d99a00;--yellow-bg:#fff4d6;--red:#d23c3c;--red-bg:#fde8e8}
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 "Segoe UI",Roboto,Arial,sans-serif}
+  header{background:var(--accent);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+  header h1{font-size:18px;margin:0;font-weight:600}
+  header .sync{margin-left:auto;font-size:13px;opacity:.9;display:flex;align-items:center;gap:8px}
+  .dot-live{width:8px;height:8px;border-radius:50%;background:#7CFFA8;box-shadow:0 0 0 3px rgba(124,255,168,.3)}
+  main{max-width:1200px;margin:0 auto;padding:20px 16px}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:16px}
+  select,input{padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:#fff;font:inherit}
+  input{min-width:220px}
+  .btn{padding:8px 14px;border-radius:8px;border:1px solid var(--accent);background:#fff;color:var(--accent);cursor:pointer;font:inherit}
+  .btn.primary{background:var(--accent);color:#fff}
+  .spacer{flex:1}
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+  .kpi{background:var(--card);border-radius:12px;padding:14px 16px;border:1px solid var(--line);cursor:pointer}
+  .kpi .n{font-size:28px;font-weight:700}
+  .kpi .l{color:var(--muted);font-size:13px}
+  .kpi.red{border-left:5px solid var(--red)} .kpi.red .n{color:var(--red)}
+  .kpi.yellow{border-left:5px solid var(--yellow)} .kpi.yellow .n{color:var(--yellow)}
+  .kpi.green{border-left:5px solid var(--green)} .kpi.green .n{color:var(--green)}
+  .kpi.all{border-left:5px solid var(--accent)}
+  .kpi.active{outline:2px solid var(--accent)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .scroll{overflow-x:auto}
+  table{width:100%;border-collapse:collapse;min-width:820px}
+  th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+  th{background:#f8f9fb;color:var(--muted);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.03em;cursor:pointer}
+  td.num{text-align:right;font-variant-numeric:tabular-nums}
+  tr:hover td{background:#fafbfd}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+  .badge::before{content:"";width:8px;height:8px;border-radius:50%;background:currentColor}
+  .b-red{color:var(--red);background:var(--red-bg)} .b-yellow{color:#a87500;background:var(--yellow-bg)} .b-green{color:var(--green);background:var(--green-bg)}
+  .bar{width:120px;height:8px;background:#edf0f4;border-radius:4px;overflow:hidden;display:inline-block;vertical-align:middle;margin-right:8px}
+  .bar i{display:block;height:100%}
+  .legend{color:var(--muted);font-size:12px;margin-top:10px}
+  .overlay{position:fixed;inset:0;background:rgba(255,255,255,.85);display:flex;align-items:center;justify-content:center;font-size:15px;gap:10px;z-index:10}
+  .spin{width:20px;height:20px;border:3px solid #cdd6e4;border-top-color:var(--accent);border-radius:50%;animation:s 1s linear infinite}
+  @keyframes s{to{transform:rotate(360deg)}}
+  .demo{background:#fff4d6;color:#7a5a00;text-align:center;font-size:12px;padding:4px}
+  @media(max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)} input{min-width:0;flex:1}}
+</style>
+</head>
+<body>
+<div class="demo">МАКЕТ · данные вымышленные, для демонстрации интерфейса</div>
+<div class="overlay" id="ov"><div class="spin"></div>Получаем остатки из 1С…</div>
+<header>
+  <h1>Остатки реагентов и медикаментов</h1>
+  <div class="sync"><span class="dot-live"></span><span id="syncTime"></span></div>
+</header>
+<main>
+  <div class="toolbar">
+    <select><option>Склад: Лаборатория (КДЛ)</option><option>Аптечный склад</option><option>Все склады</option></select>
+    <select id="grp"><option value="">Все группы</option></select>
+    <input id="q" placeholder="Поиск по наименованию…">
+    <span class="spacer"></span>
+    <button class="btn" onclick="alert('В рабочей версии: Excel-файл со списком позиций в красной и жёлтой зоне')">Список к заказу</button>
+    <button class="btn primary" onclick="alert('В рабочей версии: отчёт по остаткам из 1С в Excel / PDF')">Сформировать отчёт</button>
+  </div>
+  <div class="kpis" id="kpis"></div>
+  <div class="card"><div class="scroll"><table>
+    <thead><tr>
+      <th data-k="status">Статус</th><th data-k="name">Наименование</th><th data-k="group">Группа</th>
+      <th data-k="qty" style="text-align:right">Остаток</th><th>Ед.</th>
+      <th data-k="norm" style="text-align:right">Норма запаса</th><th data-k="pct">Уровень</th>
+      <th data-k="days" style="text-align:right">Хватит на, дн.</th>
+    </tr></thead>
+    <tbody id="tb"></tbody>
+  </table></div></div>
+  <div class="legend">Уровень = остаток ÷ норма запаса. <b style="color:var(--green)">Зелёный</b> ≥ 50% · <b style="color:var(--yellow)">Жёлтый</b> 20–50% · <b style="color:var(--red)">Красный</b> &lt; 20%. Пороги меняются в настройках.</div>
+</main>
+<script>
+const D=[
+ ["Реагент АЛТ (ALT) 4×50 мл","Биохимия","наб",1,10,3],["Реагент АСТ (AST) 4×50 мл","Биохимия","наб",4,10,3],
+ ["Глюкоза ГОД-ПАП 4×100 мл","Биохимия","наб",9,12,4],["Креатинин 2×100 мл","Биохимия","наб",2,8,2],
+ ["Мочевина 4×50 мл","Биохимия","наб",7,8,2],["Холестерин общий 4×100 мл","Биохимия","наб",3,6,1.5],
+ ["Дилюент гематологический 20 л","Гематология","кан",2,12,4],["Лизирующий реагент 500 мл","Гематология","фл",9,10,3],
+ ["Контрольная кровь (3 уровня)","Гематология","наб",1,4,1],["Тест-полоски мочевые 10 пар.","Общеклинические","уп",14,20,5],
+ ["Пробирки вакуумные ЭДТА К3 2 мл","Расходники","уп",45,60,12],["Пробирки вакуумные с активатором 5 мл","Расходники","уп",6,40,10],
+ ["Перчатки нитриловые, р. M","Расходники","уп",30,50,8],["Спирт этиловый 70% 1 л","Медикаменты","фл",8,30,6],
+ ["Иммерсионное масло 100 мл","Общеклинические","фл",3,4,0.5],["Краситель Романовского 1 л","Гематология","фл",1,6,1.5],
+ ["Тест ВИЧ 1/2 экспресс (25 т.)","Иммунология","наб",5,10,2],["Тест HBsAg ИФА 96 т.","Иммунология","наб",2,6,1]
+].map(([name,group,unit,qty,norm,perMonth])=>{const pct=qty/norm*100;return{name,group,unit,qty,norm,pct,
+  days:Math.round(qty/perMonth*30),status:pct<20?"red":pct<50?"yellow":"green"}});
+const L={red:"Мало — заказать",yellow:"Меньше среднего",green:"Достаточно"},C={red:"var(--red)",yellow:"var(--yellow)",green:"var(--green)"};
+let filt="",sortK="pct",asc=true;
+const grp=document.getElementById("grp");[...new Set(D.map(d=>d.group))].forEach(g=>grp.add(new Option(g,g)));
+function kpis(){const c=s=>D.filter(d=>d.status===s).length;
+  document.getElementById("kpis").innerHTML=[["all","Всего позиций",D.length],["red","Мало, нужно заказать",c("red")],["yellow","Меньше среднего",c("yellow")],["green","Достаточно",c("green")]]
+  .map(([k,l,n])=>`<div class="kpi ${k} ${(filt||"all")===k?"active":""}" onclick="filt='${k==="all"?"":k}';render()"><div class="n">${n}</div><div class="l">${l}</div></div>`).join("")}
+function render(){kpis();const q=document.getElementById("q").value.toLowerCase(),g=grp.value;
+  const rank={red:0,yellow:1,green:2};
+  const rows=D.filter(d=>(!filt||d.status===filt)&&(!g||d.group===g)&&d.name.toLowerCase().includes(q))
+   .sort((a,b)=>{let x=sortK==="status"?rank[a.status]-rank[b.status]:a[sortK]>b[sortK]?1:a[sortK]<b[sortK]?-1:0;return asc?x:-x});
+  document.getElementById("tb").innerHTML=rows.map(d=>`<tr><td><span class="badge b-${d.status}">${L[d.status]}</span></td><td>${d.name}</td><td>${d.group}</td>
+   <td class="num"><b>${d.qty}</b></td><td>${d.unit}</td><td class="num">${d.norm}</td>
+   <td><span class="bar"><i style="width:${Math.min(d.pct,100)}%;background:${C[d.status]}"></i></span>${Math.round(d.pct)}%</td><td class="num">${d.days}</td></tr>`).join("")}
+document.querySelectorAll("th[data-k]").forEach(th=>th.onclick=()=>{const k=th.dataset.k;asc=sortK===k?!asc:true;sortK=k;render()});
+document.getElementById("q").oninput=render;grp.onchange=render;
+document.getElementById("syncTime").textContent="Данные из 1С на "+new Date().toLocaleString("ru-RU");
+setTimeout(()=>document.getElementById("ov").remove(),700);render();
+</script>
+</body>
+</html>
