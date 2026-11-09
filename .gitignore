@@ -1,0 +1,16 @@
+# 1C file databases and service files (binary, large - do not store in Git)
+*.1CD
+*.1CL
+*.cfl
+*.lgf
+*.lgp
+1Cv8Log/
+1Cv8FTxt/
+*.dt
+
+# Temporary / system
+~$*
+*.tmp
+*.bak
+Thumbs.db
+desktop.ini
