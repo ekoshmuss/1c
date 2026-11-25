@@ -285,3 +285,8 @@
   .nt-f>div{display:flex;gap:6px} .nt-time{font-size:11px;color:var(--muted)}
   .nt-f .btn2,.nt-f .gbtn{height:30px;font-size:12px;padding:0 11px;white-space:nowrap;border-radius:6px} .nt-f .gbtn{font-weight:600;box-shadow:none}
   @media (max-width:560px){ .nt{top:auto;bottom:12px;right:12px;left:12px;width:auto;max-width:none} .nt-time{display:none} }
+
+  /* без мигающего курсора ввода вне полей ввода */
+  *{caret-color:transparent}
+  input,textarea,select,[contenteditable="true"]{caret-color:auto}
+  aside,nav,button,a,.topbar,.nt,.cs-modal .cs-h,label,.pill,.ibtn,.gbtn,.btn2{-webkit-user-select:none;user-select:none}
