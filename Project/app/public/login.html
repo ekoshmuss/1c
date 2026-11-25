@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Вход — склад лаборатории ГКИБ</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div class="login"><form id="lf" autocomplete="on">
+  <div class="login-brand"><img class="org-logo" src="/logo.jpg" alt="Логотип"><div class="org-name">Склад централизованной лаборатории ГКИБ им.&nbsp;И.&nbsp;Жекеновой</div></div>
+  <div><div style="font-size:16px;font-weight:700">Вход</div><div class="muted" style="font-size:12px;margin-top:3px">Остатки реагентов и медикаментов · склады 018 и 023</div></div>
+  <label class="field">Логин<input id="u" name="username" autocomplete="username" required autofocus></label>
+  <label class="field">Пароль<input id="p" name="password" type="password" autocomplete="current-password" required></label>
+  <div class="err" id="e"></div>
+  <button class="gbtn" id="b" type="submit">Войти</button>
+</form></div>
+<script>
+document.getElementById('lf').addEventListener('submit', async (ev) => {
+  ev.preventDefault();
+  const b = document.getElementById('b'), e = document.getElementById('e');
+  b.disabled = true; e.textContent = '';
+  try {
+    const r = await fetch('/api/login', {method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({username: document.getElementById('u').value, password: document.getElementById('p').value})});
+    const j = await r.json();
+    if (!r.ok) throw new Error(j.error || 'Ошибка входа');
+    location.href = '/';
+  } catch (err) { e.textContent = err.message; document.getElementById('p').select(); }
+  finally { b.disabled = false; }
+});
+</script>
+</body>
+</html>

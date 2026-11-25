@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LabStock — Панель управления (макет)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --sidebar:#f4f4f5; --line:#e5e7eb; --ink:#18181b; --ink2:#3f3f46; --muted:#71717a;
+    --link:#2563eb; --green:#16a34a; --green-bg:#ecfdf3;
+  }
+  *{box-sizing:border-box;margin:0}
+  body{font-family:Inter,"SF Pro Text",-apple-system,"Segoe UI",Roboto,Arial,sans-serif;color:var(--ink);background:#fff;-webkit-font-smoothing:antialiased}
+  .app{display:flex;min-height:100vh}
+
+  /* ---------- Sidebar ---------- */
+  aside{width:222px;flex-shrink:0;background:var(--sidebar);border-right:1px solid var(--line);display:flex;flex-direction:column;position:sticky;top:0;height:100vh}
+  .brand{padding:14px 14px 16px;border-bottom:1px solid var(--line)}
+  .brand-row{display:flex;align-items:center;gap:11px}
+  .logo{width:37px;height:37px;border-radius:9px;background:linear-gradient(180deg,#e0f2fe,#bae6fd);display:grid;place-items:center;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+  .brand h1{font-size:17px;font-weight:700;letter-spacing:-.01em;flex:1}
+  .collapse{color:var(--ink2);display:grid;place-items:center}
+  .branch{display:flex;align-items:center;gap:6px;margin-top:9px;font-size:9.5px;color:var(--ink2)}
+  nav{padding:12px 10px;display:flex;flex-direction:column;gap:6px}
+  nav a{display:flex;align-items:center;gap:11px;padding:8px 11px;border-radius:7px;color:var(--ink2);text-decoration:none;font-size:14.5px;font-weight:500}
+  nav a svg{width:17px;height:17px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  nav a:hover{background:#ececee}
+  nav a.active{background:var(--green-bg);color:var(--green);font-weight:600}
+  .me{margin-top:auto;border-top:1px solid var(--line);padding:11px 14px;display:flex;align-items:center;gap:9px}
+  .ava{width:27px;height:27px;border-radius:50%;background:#e8f5ee;color:#16a34a;font-size:10.5px;font-weight:700;display:grid;place-items:center;position:relative}
+  .ava b{position:absolute;top:-8px;right:-7px;background:#ef4444;color:#fff;font-size:8.5px;font-weight:700;min-width:16px;height:16px;border-radius:8px;display:grid;place-items:center;border:2px solid var(--sidebar);padding:0 3px}
+  .me .n{font-size:11px;font-weight:600} .me .r{font-size:9.5px;color:var(--muted)}
+  .me .chev{margin-left:auto;color:var(--muted)}
+
+  /* ---------- Main ---------- */
+  main{flex:1;min-width:0;background:#fff}
+  .topbar{height:41px;border-bottom:1px solid var(--line);background:#f4f4f5;display:flex;align-items:center;padding:0 21px;font-size:12.5px;font-weight:600}
+  .content{padding:28px 28px 40px;max-width:976px}
+  .actions{display:flex;gap:10px;margin-bottom:28px}
+  .gbtn{display:inline-flex;align-items:center;gap:9px;height:34px;padding:0 14px;border:0;border-radius:5px;color:#fff;font:500 15px Inter,sans-serif;cursor:pointer;
+        background:linear-gradient(90deg,#3b6ff5 0%,#7c4dfa 70%,#a83ef2 100%);box-shadow:0 4px 12px rgba(99,102,241,.28)}
+  .gbtn svg{width:14px;height:14px;stroke:#fff;stroke-width:2;fill:none;stroke-linecap:round}
+
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:20px;margin-bottom:28px}
+  .kpi{border-radius:16px;padding:20px;color:#fff;min-height:147px;position:relative;box-shadow:0 10px 24px -8px rgba(79,70,229,.45)}
+  .kpi.k1{background:linear-gradient(135deg,#3b82f6 0%,#6d4cf0 100%)}
+  .kpi.k2{background:linear-gradient(135deg,#6366f1 0%,#3b82f6 100%)}
+  .kpi.k3{background:linear-gradient(135deg,#2563eb 0%,#4f46e5 100%)}
+  .kpi.k4{background:linear-gradient(135deg,#4f46e5 0%,#1d4ed8 100%)}
+  .kpi .ic{width:41px;height:41px;border-radius:10px;background:rgba(255,255,255,.2);display:grid;place-items:center}
+  .kpi .ic svg{width:21px;height:21px;stroke:#fff;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .kpi .badge{position:absolute;top:31px;right:20px;background:rgba(255,255,255,.2);border-radius:999px;padding:4px 9px;font-size:10.5px;font-weight:600;display:flex;align-items:center;gap:5px}
+  .kpi .badge svg{width:11px;height:11px;stroke:#fff;fill:none;stroke-width:2}
+  .kpi .num{font-size:26px;font-weight:800;margin-top:18px;letter-spacing:-.01em;line-height:1.1}
+  .kpi .lbl{font-size:12px;font-weight:500;margin-top:5px;opacity:.95}
+
+  .card{border:1px solid var(--line);border-radius:16px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+  .card-h{display:flex;align-items:flex-start;justify-content:space-between;padding:20px 21px}
+  .card-h h2{font-size:16px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:9px}
+  .card-h h2 svg{width:18px;height:18px;stroke:var(--link);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+  .card-h p{font-size:12px;color:var(--muted);margin-top:4px}
+  .more{color:var(--link);font-size:12.5px;font-weight:500;text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap}
+  .more svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round}
+  .progress{margin-bottom:28px}
+  .tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:13px;padding:0 21px 21px}
+  .tile{border-radius:12px;padding:14px 10px 15px;text-align:center}
+  .tile svg{width:19px;height:19px;fill:none;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+  .tile .num{font-size:21px;font-weight:800;margin-top:7px}
+  .tile .lbl{font-size:11px;color:var(--ink2);margin-top:3px}
+  .t-blue{background:#eaf3fd} .t-blue svg{stroke:#3b82f6}
+  .t-yellow{background:#fffbeb} .t-yellow svg{stroke:#f59e0b}
+  .t-green{background:#ecfdf5} .t-green svg{stroke:#10b981}
+  .t-red{background:#fdecec} .t-red svg{stroke:#ef4444}
+
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:28px}
+  .two .card-h{border-bottom:1px solid var(--line);align-items:center;padding:16px 21px}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:13px 14px;border-bottom:1px solid #f0f0f2}
+  .row:last-child{border-bottom:0}
+  .row .t{font-size:13.5px;font-weight:500;max-width:270px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .row .s{font-size:10.5px;color:var(--muted);margin-top:3px}
+  .row .r{text-align:right}
+  .row .amt{font-size:13.5px;font-weight:600}
+  .pill{display:inline-block;margin-top:5px;padding:2px 7px;border-radius:4px;font-size:10.5px;font-weight:500}
+  .p-green{background:#dcfce7;color:#16a34a} .p-red{background:#fde8e8;color:#dc2626}
+  .p-yellow{background:#fef3c7;color:#b45309} .p-blue{background:#e0f2fe;color:#0284c7;border-radius:999px;padding:3px 8px}
+  .wh{display:flex;align-items:center;gap:11px}
+  .wh .av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,#6366f1,#3b82f6);color:#fff;font-size:11px;font-weight:700;display:grid;place-items:center;flex-shrink:0}
+
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th{font-size:10.5px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);background:#fafafa}
+  td{padding:11px 14px;border-bottom:1px solid #f0f0f2}
+  tr:last-child td{border-bottom:0}
+  td.n{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+  .bar{display:inline-block;width:70px;height:6px;border-radius:3px;background:#eef0f4;overflow:hidden;vertical-align:middle;margin-right:7px}
+  .bar i{display:block;height:100%;border-radius:3px}
+  .muted{color:var(--muted)}
+  .stamp{position:fixed;right:12px;bottom:10px;background:#18181b;color:#fff;font-size:10.5px;padding:4px 9px;border-radius:6px;opacity:.75}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">
+      <div class="brand-row">
+        <div class="logo">
+          <svg width="20" height="20" viewBox="0 0 24 24"><defs><linearGradient id="g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#0369a1"/></linearGradient></defs><path d="M9 2h6M10 2v6.5L4.6 18.2A2.5 2.5 0 0 0 6.8 22h10.4a2.5 2.5 0 0 0 2.2-3.8L14 8.5V2" fill="url(#g)" stroke="#0369a1" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        </div>
+        <h1>LabStock</h1>
+        <span class="collapse"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg></span>
+      </div>
+      <div class="branch"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-4h4v4"/></svg>Склады 018 и 023</div>
+    </div>
+    <nav>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M3 3h18v18H3z" style="display:none"/><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>Остатки</a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3h2.6l2.6 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 1.9-1.5L21.5 8H6"/></svg>К заказу</a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Сроки годности</a>
+      <a href="#" class="active"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Панель управления</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg>Поступления</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-5M12 17V8M16 17v-8"/></svg>Отчёты</a>
+      <a href="#"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M8 17v-3M12 17v-7M16 17v-5"/></svg>Расход по складам</a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.5A6.5 6.5 0 0 1 21.5 20"/></svg>Пользователи</a>
+      <a href="#"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Настройки</a>
+    </nav>
+    <div class="me">
+      <div class="ava">AD<b>7</b></div>
+      <div><div class="n">admin</div><div class="r">Администратор</div></div>
+      <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar">Панель управления</div>
+    <div class="content">
+      <div class="actions">
+        <button class="gbtn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Отчёт по остаткам</button>
+        <button class="gbtn"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Список к заказу</button>
+      </div>
+
+      <div class="kpis">
+        <div class="kpi k1">
+          <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+          <div class="badge"><svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>Нужно действие</div>
+          <div class="num">38</div><div class="lbl">Мало — заказать</div>
+        </div>
+        <div class="kpi k2">
+          <div class="ic"><svg viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg></div>
+          <div class="num">96</div><div class="lbl">Меньше среднего</div>
+        </div>
+        <div class="kpi k3">
+          <div class="ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg></div>
+          <div class="num">512</div><div class="lbl">Достаточно</div>
+        </div>
+        <div class="kpi k4">
+          <div class="ic"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg></div>
+          <div class="num">731</div><div class="lbl">Всего позиций</div>
+        </div>
+      </div>
+
+      <div class="card progress">
+        <div class="card-h">
+          <div><h2>Состояние запасов</h2><p>Остаток относительно последнего поступления (100%)</p></div>
+          <a class="more" href="#">Смотреть все <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+        <div class="tiles">
+          <div class="tile t-blue"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><div class="num">85</div><div class="lbl">Нет поступлений</div></div>
+          <div class="tile t-yellow"><svg viewBox="0 0 24 24"><path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/></svg><div class="num">96</div><div class="lbl">Меньше среднего</div></div>
+          <div class="tile t-green"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/></svg><div class="num">512</div><div class="lbl">Достаточно</div></div>
+          <div class="tile t-red"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/></svg><div class="num">38</div><div class="lbl">Мало — заказать</div></div>
+        </div>
+      </div>
+
+      <div class="two">
+        <div class="card">
+          <div class="card-h">
+            <h2><svg viewBox="0 0 24 24"><circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3h2.6l2.6 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 1.9-1.5L21.5 8H6"/></svg>Нужно заказать</h2>
+            <a class="more" href="#">Смотреть все <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </div>
+          <div class="row"><div><div class="t">Реагент АЛТ (ALT) 4×50 мл</div><div class="s">018 КДЛ · пришло 10 наб · 02.10.2026</div></div><div class="r"><div class="amt">1 наб</div><span class="pill p-red">10%</span></div></div>
+          <div class="row"><div><div class="t">Дилюент гематологический 20 л</div><div class="s">018 КДЛ · пришло 12 кан · 15.09.2026</div></div><div class="r"><div class="amt">2 кан</div><span class="pill p-red">17%</span></div></div>
+          <div class="row"><div><div class="t">Тест HBsAg ИФА 96 т.</div><div class="s">023 ЦБЛ · пришло 6 наб · 28.08.2026</div></div><div class="r"><div class="amt">1 наб</div><span class="pill p-red">17%</span></div></div>
+          <div class="row"><div><div class="t">Креатинин 2×100 мл</div><div class="s">023 ЦБЛ · пришло 8 наб · 11.10.2026</div></div><div class="r"><div class="amt">2 наб</div><span class="pill p-yellow">25%</span></div></div>
+        </div>
+        <div class="card">
+          <div class="card-h">
+            <h2><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Истекает срок годности</h2>
+            <a class="more" href="#">Смотреть все <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          </div>
+          <div class="row"><div class="wh"><div class="av">018</div><div><div class="t">Контрольная сыворотка, ур. 2</div><div class="s">серия 2207114 · 3 фл</div></div></div><span class="pill p-blue">12 дней</span></div>
+          <div class="row"><div class="wh"><div class="av">018</div><div><div class="t">Глюкоза ГОД-ПАП 4×100 мл</div><div class="s">серия G-0925 · 4 наб</div></div></div><span class="pill p-blue">19 дней</span></div>
+          <div class="row"><div class="wh"><div class="av">023</div><div><div class="t">Тест-полоски мочевые</div><div class="s">серия U2611 · 14 уп</div></div></div><span class="pill p-blue">34 дня</span></div>
+          <div class="row"><div class="wh"><div class="av">023</div><div><div class="t">Иммерсионное масло 100 мл</div><div class="s">серия IM-44 · 3 фл</div></div></div><span class="pill p-blue">51 день</span></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-h">
+          <div><h2>Остатки по складам</h2><p>Данные из 1С · обновлено 24.11.2026, 11:24</p></div>
+          <a class="more" href="#">Смотреть все <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+        <table>
+          <thead><tr><th>Наименование</th><th>Склад</th><th style="text-align:right">Остаток</th><th style="text-align:right">Поступление</th><th>Уровень</th><th>Статус</th></tr></thead>
+          <tbody>
+            <tr><td>Реагент АЛТ (ALT) 4×50 мл</td><td class="muted">018 КДЛ</td><td class="n">1</td><td class="n">10</td><td><span class="bar"><i style="width:10%;background:#ef4444"></i></span>10%</td><td><span class="pill p-red" style="margin:0">Мало</span></td></tr>
+            <tr><td>Креатинин 2×100 мл</td><td class="muted">023 ЦБЛ</td><td class="n">2</td><td class="n">8</td><td><span class="bar"><i style="width:25%;background:#f59e0b"></i></span>25%</td><td><span class="pill p-yellow" style="margin:0">Меньше среднего</span></td></tr>
+            <tr><td>Пробирки вакуумные ЭДТА К3</td><td class="muted">018 КДЛ</td><td class="n">45</td><td class="n">60</td><td><span class="bar"><i style="width:75%;background:#10b981"></i></span>75%</td><td><span class="pill p-green" style="margin:0">Достаточно</span></td></tr>
+            <tr><td>Лизирующий реагент 500 мл</td><td class="muted">018 КДЛ</td><td class="n">9</td><td class="n">10</td><td><span class="bar"><i style="width:90%;background:#10b981"></i></span>90%</td><td><span class="pill p-green" style="margin:0">Достаточно</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+<div class="stamp">МАКЕТ · данные вымышленные</div>
+</body>
+</html>

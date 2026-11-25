@@ -1,0 +1,601 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Склад лаборатории ГКИБ — остатки</title>
+<link rel="icon" type="image/png" href="/favicon.png">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<div id="root"><div class="loading"><div class="sp"></div>Загрузка…</div></div>
+<div class="overlay" id="ov"><div class="modal" id="modal"></div></div>
+<div class="toast" id="toast"><svg viewBox="0 0 24 24"><path d="m5 12 5 5 9-10"/></svg><span></span></div>
+<script>
+'use strict';
+/* ================= ИКОНКИ ================= */
+const P = {
+  table:'<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/>',
+  cart:'<circle cx="9" cy="20" r="1.4"/><circle cx="18" cy="20" r="1.4"/><path d="M2.5 3h2.6l2.6 12.4a2 2 0 0 0 2 1.6h8.2a2 2 0 0 0 1.9-1.5L21.5 8H6"/>',
+  clock:'<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  grid:'<rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/>',
+  box:'<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="m3 8 9 5 9-5M12 13v8"/>',
+  chart:'<path d="M3 3v18h18"/><path d="M8 17v-5M12 17V8M16 17v-8"/>',
+  chart2:'<path d="M3 3v18h18"/><path d="M8 17v-3M12 17v-7M16 17v-5"/>',
+  users:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0"/><path d="M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.5A6.5 6.5 0 0 1 21.5 20"/>',
+  gear:'<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+  check:'<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>',
+  x:'<circle cx="12" cy="12" r="9"/><path d="m9 9 6 6M15 9l-6 6"/>',
+  plus:'<path d="M12 5v14M5 12h14"/>',
+  arrow:'<path d="M5 12h14M13 6l6 6-6 6"/>',
+  pulse:'<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+  search:'<circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/>',
+  refresh:'<path d="M21 12a9 9 0 1 1-2.6-6.4L21 8"/><path d="M21 3v5h-5"/>',
+  download:'<path d="M12 3v12M7 10l5 5 5-5M4 21h16"/>',
+  logout:'<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"/>',
+  user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  lock:'<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>',
+  bell:'<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+  warn:'<path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.5v.5"/>',
+  close:'<path d="M6 6l12 12M18 6 6 18"/>',
+};
+const ic = (n, cls='') => `<svg class="${cls}" viewBox="0 0 24 24">${P[n]}</svg>`;
+const logo = `<div class="logo"><svg width="20" height="20" viewBox="0 0 24 24"><defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#0369a1"/></linearGradient></defs><path d="M9 2h6M10 2v6.5L4.6 18.2A2.5 2.5 0 0 0 6.8 22h10.4a2.5 2.5 0 0 0 2.2-3.8L14 8.5V2" fill="url(#lg)" stroke="#0369a1" stroke-width="1.2" stroke-linejoin="round"/></svg></div>`;
+
+/* ================= СОСТОЯНИЕ ================= */
+const S = {
+  route:'dashboard', mini:false, wh:'all', q:'', status:'', sortK:'status', asc:true, open:new Set(),
+  expF:60, sel:new Set(), me:null, data:null, error:null, users:null, loading:false,
+};
+try { S.mini = localStorage.getItem('ls_mini') === '1'; } catch {}
+const fmt = n => n == null ? '—' : Number(n).toLocaleString('ru-RU', {maximumFractionDigits:3});
+const dmy = s => s ? s.slice(8,10)+'.'+s.slice(5,7)+'.'+s.slice(0,4) : '—';
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const plural = (n, a, b, c) => { const m = Math.abs(n)%100, l = m%10; return m>10&&m<20 ? c : l===1 ? a : l>1&&l<5 ? b : c; };
+const whCode = name => (String(name).match(/^\s*(\d+)/) || [,''])[1];
+const today = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; };
+const isAdmin = () => S.me && S.me.role === 'admin';
+
+/* данные сервера → элементы интерфейса */
+function mapItem(i) {
+  const wc = whCode(i.warehouse);
+  return { id:i.key, wh:wc, whTag: wc + (/\(\s*ПОСТ\s*\)/i.test(i.warehouse) ? ' ПОСТ' : ''), whName:i.warehouse, code:i.code, name:i.name, group:i.group || '—', unit:i.unit || '',
+    qty:i.qty, rec:i.receiptQty, recDate:i.receiptDate, recDoc:i.receiptDoc, norm:i.norm, manual:i.normSource === 'manual',
+    pct:i.pct == null ? null : Math.round(i.pct), st:i.status, exp:i.expiry, ed:i.expiryDays, expSt:i.expiryStatus,
+    order:i.orderQty || 0, used30:i.used30, sum:i.sum,
+    series:(i.series || []).map(s => ({s:s.series, qty:s.qty, exp:s.expiry, d:s.days})) };
+}
+const ITEMS = () => (S.data ? S.data.items : []);
+const WHS = () => [...new Set(ITEMS().map(i => i.wh))].filter(Boolean).sort();
+const all = () => ITEMS().filter(i => S.wh === 'all' || i.wh === S.wh);
+const ST = {red:['Мало — заказать','p-red','#ef4444'], yellow:['Меньше среднего','p-yellow','#f59e0b'], green:['Достаточно','p-green','#10b981'], nonorm:['Нет поступлений','p-blue','#3b82f6'], error:['Отриц. остаток','p-red','#a855f7']};
+const RANK = {error:0, red:1, yellow:2, green:3, nonorm:4};
+const pill = st => `<span class="pill ${ST[st][1]}" style="margin:0">${ST[st][0]}</span>`;
+const bar = i => i.pct == null ? '<span class="muted">—</span>' : `<span class="bar"><i style="width:${Math.min(Math.max(i.pct,0),100)}%;background:${ST[i.st][2]}"></i></span>${i.pct}%`;
+
+/* ================= API ================= */
+async function api(url, opts = {}) {
+  const r = await fetch(url, opts.body ? {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(opts.body)} : opts);
+  if (r.status === 401) { location.href = '/login.html'; throw new Error('Требуется вход'); }
+  if (r.status === 403 && url !== '/api/consent') { const j = await r.clone().json().catch(() => ({})); if (j.consent === false) { location.reload(); throw new Error(j.error); } }
+  const ct = r.headers.get('content-type') || '';
+  const j = ct.includes('json') ? await r.json() : await r.text();
+  if (!r.ok) throw new Error((j && j.error) || 'Ошибка ' + r.status);
+  return j;
+}
+// Автообновление остатков из 1С
+const AUTO_MIN = 10;
+let autoTimer = null, nextAt = 0;
+function scheduleAuto() {
+  clearTimeout(autoTimer);
+  nextAt = Date.now() + AUTO_MIN * 60000;
+  autoTimer = setTimeout(() => loadStock(true, true), AUTO_MIN * 60000);
+}
+const modalOpen = () => document.getElementById('ov').classList.contains('open');
+async function loadStock(refresh = false, silent = false) {
+  if (S.loading) return;
+  S.loading = true; if (!silent) render(); else markSpin(true);
+  try {
+    const j = await api('/api/stock?warehouse=' + (refresh ? '&refresh=1' : ''));
+    j.items = j.items.map(mapItem);
+    S.data = j; S.error = null;
+  } catch (e) { S.error = e.message; }
+  S.loading = false;
+  if (!S.error) setTimeout(checkLow, 600);
+  scheduleAuto();
+  if (silent && modalOpen()) { S.pending = true; markSpin(false); return; }
+  render();
+}
+function markSpin(on) { const b = document.querySelector('[data-act="refresh"]'); if (b) b.classList.toggle('spin', on); }
+// вкладка была скрыта дольше интервала — обновить сразу при возврате
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && S.data && Date.now() >= nextAt) loadStock(true, true);
+});
+
+/* ================= МАРШРУТЫ ================= */
+const NAV = [
+  ['dashboard','grid','Панель управления'],['stock','table','Остатки'],['order','cart','К заказу'],['expiry','clock','Сроки годности'],
+  ['receipts','box','Поступления'],['reports','chart','Отчёты'],['usage','chart2','Расход по складам'],['users','users','Пользователи'],['settings','gear','Настройки'],
+];
+const TITLE = Object.fromEntries(NAV.map(n => [n[0], n[2]]));
+function go(route, opts = {}) {
+  Object.assign(S, opts); S.route = route;
+  if (location.hash.slice(1) !== route) history.pushState(null, '', '#' + route);
+  render(); window.scrollTo(0,0);
+  if (route === 'users' && isAdmin()) loadUsers();
+}
+window.addEventListener('popstate', () => { const r = location.hash.slice(1); S.route = TITLE[r] ? r : 'dashboard'; render(); if (S.route === 'users' && isAdmin()) loadUsers(); });
+
+/* ================= КАРКАС ================= */
+function render() {
+  const root = document.getElementById('root');
+  if (!S.me) return;
+  const it = ITEMS();
+  const attention = it.filter(i => i.st === 'red' || i.st === 'error').length;
+  const synced = S.data ? new Date(S.data.syncedAt).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+  const codes = (S.data && S.data.warehouseCodes || '018,023').split(',').join(' и ');
+  const fa = document.activeElement, faId = fa && fa.id, faPos = fa && fa.selectionStart;
+  root.innerHTML = `
+  <div class="app ${S.mini ? 'mini' : ''}">
+    <aside>
+      <div class="brand">
+        <div class="brand-row"><img class="org-logo" src="/logo.jpg" alt="Логотип"><div class="org-name">Склад централизованной лаборатории ГКИБ им.&nbsp;И.&nbsp;Жекеновой</div>
+          <span class="collapse" data-act="mini" title="Свернуть меню"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="m15 18-6-6 6-6"/></svg></span></div>
+        <div class="branch"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M10 21v-4h4v4"/></svg>Склады ${esc(codes)}</div>
+      </div>
+      <nav>${NAV.map(([r,i,t]) => `<a data-go="${r}" class="${S.route===r?'active':''}" title="${t}">${ic(i)}<span>${t}</span></a>`).join('')}</nav>
+      <div class="me" data-act="menu">
+        <div class="ava">${esc(S.me.user.slice(0,2).toUpperCase())}${attention ? `<b>${attention}</b>` : ''}</div>
+        <div class="who"><div class="n">${esc(S.me.user)}</div><div class="r">${isAdmin()?'Администратор':'Просмотр'}</div></div>
+        <svg class="chev" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m7 15 5 5 5-5M7 9l5-5 5 5"/></svg>
+        <div class="menu" id="menu">
+          <button data-act="profile">${ic('user')}Профиль</button>
+          <button data-act="pass">${ic('lock')}Сменить пароль</button>
+          <button class="danger" data-act="logout">${ic('logout')}Выйти</button>
+        </div>
+      </div>
+    </aside>
+    <main>
+      <div class="topbar"><span>${TITLE[S.route]}</span>
+        <span class="sync"><span class="dot" style="${S.error?'background:#ef4444;box-shadow:0 0 0 3px #fee2e2':''}"></span><span>${S.error ? 'Нет связи с 1С' : 'Данные из 1С на ' + synced}</span><span class="auto" title="Остатки обновляются автоматически">· авто каждые ${AUTO_MIN} мин</span>
+        <button class="ibtn nt-bell ${lowList().length?'has':''}" data-act="notif" title="Уведомления о малых остатках">${ic('bell')}${lowList().length?`<b>${lowList().length}</b>`:''}</button>
+        <button class="ibtn ${S.loading?'spin':''}" data-act="refresh">${ic('refresh')}Обновить</button></span></div>
+      <div class="content" id="page">
+        ${S.error ? `<div class="banner">Не удалось получить данные из 1С: ${esc(S.error)}</div>` : ''}
+        ${S.data || S.route === 'users' || S.route === 'settings' ? PAGES[S.route]() : (S.loading ? '' : '<div class="empty">Нет данных</div>')}
+      </div>
+    </main>
+  </div>
+  ${S.loading && !S.data ? '<div class="loading"><div class="sp"></div>Получаем остатки из 1С…</div>' : ''}`;
+  bind();
+  if (faId && faId !== 'ov') { const n = document.getElementById(faId); if (n && n.focus) { n.focus(); try { n.setSelectionRange(faPos, faPos); } catch {} } }
+}
+
+/* ================= СТРАНИЦЫ ================= */
+const PAGES = {
+dashboard() {
+  const it = all(), c = s => it.filter(i => i.st === s).length;
+  const exp = it.filter(i => i.expSt === 'soon' || i.expSt === 'expired').sort((a,b) => a.ed - b.ed);
+  const ord = it.filter(i => i.st === 'red' || i.st === 'yellow').sort((a,b) => a.pct - b.pct);
+  return `
+  <div class="actions">
+    <button class="gbtn" data-act="csv-all">${ic('plus')}Отчёт по остаткам</button>
+    <button class="gbtn" data-act="csv-order">${ic('plus')}Список к заказу</button>
+  </div>
+  <div class="kpis">
+    <div class="kpi k1" data-go="stock" data-status="red"><div class="ic">${ic('clock')}</div>${c('red')?`<div class="badge">${ic('pulse')}Нужно действие</div>`:''}<div class="num">${c('red')}</div><div class="lbl">Мало — заказать</div></div>
+    <div class="kpi k2" data-go="stock" data-status="yellow"><div class="ic">${ic('box')}</div><div class="num">${c('yellow')}</div><div class="lbl">Меньше среднего</div></div>
+    <div class="kpi k3" data-go="stock" data-status="green"><div class="ic">${ic('check')}</div><div class="num">${c('green')}</div><div class="lbl">Достаточно</div></div>
+    <div class="kpi k4" data-go="stock" data-status=""><div class="ic">${ic('table')}</div><div class="num">${it.length}</div><div class="lbl">Всего позиций</div></div>
+  </div>
+  <div class="card progress">
+    <div class="card-h"><div><h2>Состояние запасов</h2><p>Остаток относительно последнего поступления (100%) · ${whLabel()}</p></div>
+      <a class="more" data-go="stock" data-status="">Смотреть все ${ic('arrow')}</a></div>
+    <div class="tiles">
+      <div class="tile t-blue" data-go="stock" data-status="nonorm">${ic('clock')}<div class="num">${c('nonorm')}</div><div class="lbl">Нет поступлений</div></div>
+      <div class="tile t-yellow" data-go="stock" data-status="yellow">${ic('box')}<div class="num">${c('yellow')}</div><div class="lbl">Меньше среднего</div></div>
+      <div class="tile t-green" data-go="stock" data-status="green">${ic('check')}<div class="num">${c('green')}</div><div class="lbl">Достаточно</div></div>
+      <div class="tile t-red" data-go="stock" data-status="red">${ic('x')}<div class="num">${c('red')}</div><div class="lbl">Мало — заказать</div></div>
+    </div>
+  </div>
+  <div class="two">
+    <div class="card">
+      <div class="card-h"><h2>${ic('cart')}Нужно заказать</h2><a class="more" data-go="order">Смотреть все ${ic('arrow')}</a></div>
+      ${ord.slice(0,5).map(i => `<div class="row" data-go="stock" data-q="${esc(i.name)}"><div><div class="t">${esc(i.name)}</div><div class="s">${i.whTag} · пришло ${fmt(i.norm)} ${esc(i.unit)} · ${dmy(i.recDate)}</div></div><div class="r"><div class="amt">${fmt(i.qty)} ${esc(i.unit)}</div><span class="pill ${ST[i.st][1]}">${i.pct}%</span></div></div>`).join('') || '<div class="empty">Нечего заказывать</div>'}
+    </div>
+    <div class="card">
+      <div class="card-h"><h2>${ic('clock')}Истекает срок годности</h2><a class="more" data-go="expiry">Смотреть все ${ic('arrow')}</a></div>
+      ${exp.slice(0,5).map(i => `<div class="row" data-go="stock" data-q="${esc(i.name)}"><div class="wh"><div class="av">${i.wh}</div><div><div class="t">${esc(i.name)}</div><div class="s">${i.whTag} · ${fmt(i.qty)} ${esc(i.unit)} · до ${dmy(i.exp)}</div></div></div><span class="pill ${i.ed<0?'p-red':'p-blue'}">${i.ed<0?'истёк':i.ed+' '+plural(i.ed,'день','дня','дней')}</span></div>`).join('') || '<div class="empty">Сроки в порядке</div>'}
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h"><div><h2>Остатки по складам</h2><p>Самые низкие уровни запаса</p></div><a class="more" data-go="stock" data-status="">Смотреть все ${ic('arrow')}</a></div>
+    <div class="scroll">${stockTable(it.filter(i=>i.pct!=null).sort((a,b)=>a.pct-b.pct).slice(0,6), false)}</div>
+  </div>`;
+},
+
+stock() {
+  const base = all();
+  const q = S.q.toLowerCase();
+  let rows = base.filter(i => (!S.status || i.st === S.status) && (!q || (i.name+' '+i.code).toLowerCase().includes(q)));
+  rows = sortRows(rows);
+  const cnt = s => base.filter(i => i.st === s).length;
+  const shown = rows.slice(0, 500);
+  return `
+  <div class="page-h"><div><h2>Остатки</h2><p>Нажмите на строку — серии, сроки годности и документ поступления</p></div>
+    <button class="gbtn" data-act="csv-view">${ic('download')}Выгрузить в Excel</button></div>
+  <div class="card">
+    <div class="toolbar">
+      ${whSeg()}
+      <div class="search">${ic('search')}<input id="q" placeholder="Поиск по наименованию или коду" value="${esc(S.q)}"></div>
+    </div>
+    <div class="toolbar" style="padding-top:10px;padding-bottom:10px"><div class="chips">
+      ${[['','Все',base.length],['red','Мало',cnt('red')],['yellow','Меньше среднего',cnt('yellow')],['green','Достаточно',cnt('green')],['nonorm','Нет поступлений',cnt('nonorm')],['error','Отриц. остаток',cnt('error')]]
+        .map(([k,l,n]) => `<button class="chip ${S.status===k?'on':''}" data-status-chip="${k}">${l} <b>${n}</b></button>`).join('')}
+    </div></div>
+    <div class="scroll">${stockTable(shown, true)}</div>
+    <div class="foot"><span>Показано ${shown.length} из ${rows.length}${rows.length>shown.length?' (уточните поиск)':''}</span><span>${isAdmin()?'Нажмите на число в «Поступление», чтобы задать норму вручную':''}</span></div>
+  </div>`;
+},
+
+order() {
+  const rows = all().filter(i => ['red','yellow','error'].includes(i.st)).sort((a,b) => (RANK[a.st]-RANK[b.st]) || (a.pct??0)-(b.pct??0));
+  return `
+  <div class="page-h"><div><h2>К заказу</h2><p>Позиции в красной и жёлтой зоне · отметьте нужные и сформируйте заявку</p></div>
+    <button class="gbtn" data-act="csv-sel">${ic('download')}Сформировать заявку${S.sel.size?` (${S.sel.size})`:''}</button></div>
+  <div class="card">
+    <div class="toolbar">${whSeg()}<span class="muted" style="font-size:12px">Рекомендуемое количество = до уровня последнего поступления</span></div>
+    <div class="scroll"><table>
+      <thead><tr><th style="width:36px"><input type="checkbox" id="selAll" ${rows.length && rows.every(r=>S.sel.has(r.id))?'checked':''}></th><th>Наименование</th><th>Склад</th><th style="text-align:right">Остаток</th><th style="text-align:right">Поступление</th><th>Уровень</th><th style="text-align:right">Заказать</th></tr></thead>
+      <tbody>${rows.map(i => `<tr><td><input type="checkbox" data-sel="${esc(i.id)}" ${S.sel.has(i.id)?'checked':''}></td><td>${esc(i.name)}<div class="sub">${esc(i.code)} · ${esc(i.group)}</div></td><td class="muted">${i.whTag}</td><td class="n">${fmt(i.qty)} ${esc(i.unit)}</td><td class="n">${fmt(i.norm)}</td><td>${bar(i)}</td><td class="n" style="color:#4f46e5">${i.order?'+'+fmt(i.order)+' '+esc(i.unit):'—'}</td></tr>`).join('') || '<tr><td colspan="7" class="empty">Нечего заказывать</td></tr>'}</tbody>
+    </table></div>
+    <div class="foot"><span>${rows.length} ${plural(rows.length,'позиция','позиции','позиций')}</span><span>Выбрано: ${S.sel.size}</span></div>
+  </div>`;
+},
+
+expiry() {
+  const base = expiryRows();
+  const rows = base.filter(r => S.expF === 'exp' ? r.sd < 0 : r.sd <= S.expF).sort((a,b) => a.sd - b.sd);
+  return `
+  <div class="page-h"><div><h2>Сроки годности</h2><p>Серии, у которых срок истекает или уже истёк</p></div>
+    <button class="gbtn" data-act="csv-exp">${ic('download')}Выгрузить в Excel</button></div>
+  <div class="card">
+    <div class="toolbar">${whSeg()}<div class="chips">
+      ${[[30,'≤ 30 дней'],[60,'≤ 60 дней'],[90,'≤ 90 дней'],[180,'≤ 180 дней'],['exp','Истекшие']].map(([k,l]) => `<button class="chip ${S.expF===k?'on':''}" data-expf="${k}">${l} <b>${base.filter(r => k==='exp' ? r.sd<0 : r.sd<=k).length}</b></button>`).join('')}
+    </div></div>
+    <div class="scroll"><table>
+      <thead><tr><th>Наименование</th><th>Серия</th><th>Склад</th><th style="text-align:right">Количество</th><th>Годен до</th><th>Осталось</th></tr></thead>
+      <tbody>${rows.map(r => `<tr><td>${esc(r.name)}<div class="sub">${esc(r.code)}</div></td><td class="muted">${esc(r.ser)}</td><td class="muted">${r.whTag}</td><td class="n">${fmt(r.sq)} ${esc(r.unit)}</td><td>${dmy(r.sexp)}</td><td><span class="pill ${r.sd<0?'p-red':r.sd<=30?'p-yellow':'p-blue'}" style="margin:0">${r.sd<0?'истёк '+(-r.sd)+' дн. назад':r.sd+' '+plural(r.sd,'день','дня','дней')}</span></td></tr>`).join('') || '<tr><td colspan="6" class="empty">Нет серий с таким сроком</td></tr>'}</tbody>
+    </table></div>
+  </div>`;
+},
+
+receipts() {
+  const rows = all().filter(i => i.rec).sort((a,b) => String(b.recDate).localeCompare(String(a.recDate)));
+  const q = S.q.toLowerCase(); const f = rows.filter(r => !q || (r.name+' '+r.recDoc).toLowerCase().includes(q)).slice(0, 500);
+  return `
+  <div class="page-h"><div><h2>Поступления</h2><p>Последний приход по каждой позиции — это и есть 100% для индикатора</p></div></div>
+  <div class="card">
+    <div class="toolbar">${whSeg()}<div class="search">${ic('search')}<input id="q" placeholder="Поиск по наименованию или документу" value="${esc(S.q)}"></div></div>
+    <div class="scroll"><table>
+      <thead><tr><th>Дата</th><th>Наименование</th><th>Склад</th><th>Документ 1С</th><th style="text-align:right">Пришло</th><th style="text-align:right">Сейчас</th></tr></thead>
+      <tbody>${f.map(r => `<tr><td style="white-space:nowrap">${dmy(r.recDate)}</td><td>${esc(r.name)}</td><td class="muted">${r.whTag}</td><td class="muted" style="font-size:11.5px">${esc(r.recDoc)}</td><td class="n">${fmt(r.rec)} ${esc(r.unit)}</td><td class="n">${fmt(r.qty)} ${pill(r.st)}</td></tr>`).join('') || '<tr><td colspan="6" class="empty">Ничего не найдено</td></tr>'}</tbody>
+    </table></div>
+  </div>`;
+},
+
+reports() {
+  const R = [['table','Остатки на дату','Все позиции складов с уровнем запаса и статусом','all'],
+             ['cart','Список к заказу','Красная и жёлтая зона с рекомендуемым количеством','order'],
+             ['clock','Сроки годности','Серии со сроком годности, отсортированные по дате','exp'],
+             ['box','Последние поступления','Последний приход по каждой позиции из документов 1С','rec']];
+  return `
+  <div class="page-h"><div><h2>Отчёты</h2><p>Формируются по данным 1С и скачиваются в Excel</p></div></div>
+  <div class="grid3">${R.map(([i,t,d,a]) => `
+    <div class="card rep"><div class="ic">${ic(i)}</div><div><h3>${t}</h3><p>${d}</p></div>
+      <div class="frow"><label class="field">На дату<input type="date" id="d-${a}" value="${today()}" max="${today()}"></label>
+        <label class="field">Склад<select id="w-${a}"><option value="all">Все склады</option>${WHS().map(w => `<option value="${w}">${w}</option>`).join('')}</select></label></div>
+      <div><button class="gbtn" data-act="report" data-rep="${a}">${ic('download')}Сформировать</button></div></div>`).join('')}</div>`;
+},
+
+usage() {
+  if (!S.data.usageAvailable) return `
+    <div class="page-h"><div><h2>Расход по складам</h2><p>Списано за последние 30 дней</p></div></div>
+    <div class="card"><div class="empty">Данные о расходе пока не приходят из 1С. Нужно обновить расширение LabStock (метод <b>/usage</b>).</div></div>`;
+  const it = ITEMS();
+  const whs = WHS(), colors = ['#4f46e5','#38bdf8','#a855f7','#10b981'];
+  const groups = [...new Set(it.map(i => i.group))];
+  const data = groups.map(g => ({g, v: whs.map(w => it.filter(i=>i.group===g&&i.wh===w).reduce((s,i)=>s+(i.used30||0),0))})).filter(d => d.v.some(x=>x>0)).sort((a,b) => b.v.reduce((s,x)=>s+x,0) - a.v.reduce((s,x)=>s+x,0));
+  const max = Math.max(1, ...data.map(d => d.v.reduce((s,x)=>s+x,0)));
+  const top = all().filter(i => i.used30 > 0).sort((a,b)=>b.used30-a.used30).slice(0,15);
+  return `
+  <div class="page-h"><div><h2>Расход по складам</h2><p>Списано за последние 30 дней (в единицах учёта)</p></div></div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-h"><div><h2>По группам</h2><p>Сравнение складов ${whs.join(' и ')}</p></div></div>
+    <div class="legend">${whs.map((w,k) => `<span><i style="background:${colors[k%4]}"></i>${w}</span>`).join('')}</div>
+    <div class="chart">${data.slice(0,12).map(d => `<div class="crow"><span>${esc(d.g)}</span><span class="ctrack">${d.v.map((x,k) => `<i style="width:${x/max*100}%;background:${colors[k%4]}"></i>`).join('')}</span><b style="text-align:right">${fmt(d.v.reduce((s,x)=>s+x,0))}</b></div>`).join('') || '<div class="empty">Расхода за 30 дней нет</div>'}</div>
+  </div>
+  <div class="card">
+    <div class="toolbar">${whSeg()}<span class="muted" style="font-size:12px">Топ-15 по расходу</span></div>
+    <div class="scroll"><table><thead><tr><th>Наименование</th><th>Склад</th><th style="text-align:right">Расход за 30 дн.</th><th style="text-align:right">Остаток</th><th>Хватит примерно на</th></tr></thead>
+    <tbody>${top.map(i => { const d = i.used30 ? Math.round(Math.max(i.qty,0) / i.used30 * 30) : null; return `<tr><td>${esc(i.name)}</td><td class="muted">${i.whTag}</td><td class="n">${fmt(i.used30)} ${esc(i.unit)}</td><td class="n">${fmt(i.qty)}</td><td>${d==null?'—':`<span class="pill ${d<14?'p-red':d<30?'p-yellow':'p-green'}" style="margin:0">${d} ${plural(d,'день','дня','дней')}</span>`}</td></tr>`; }).join('') || '<tr><td colspan="5" class="empty">Расхода за 30 дней нет</td></tr>'}</tbody></table></div>
+  </div>`;
+},
+
+users() {
+  if (!isAdmin()) return `<div class="page-h"><div><h2>Пользователи</h2></div></div><div class="card"><div class="empty">Управление пользователями доступно только администратору.</div></div>`;
+  const list = S.users;
+  return `
+  <div class="page-h"><div><h2>Пользователи</h2><p>Кто может входить в веб-интерфейс</p></div>
+    <button class="gbtn" data-act="add-user">${ic('plus')}Добавить пользователя</button></div>
+  <div class="card"><div class="scroll"><table>
+    <thead><tr><th>Логин</th><th>Имя</th><th>Роль</th><th>Последний вход</th><th>Согласие</th><th>Статус</th><th></th></tr></thead>
+    <tbody>${!list ? '<tr><td colspan="7" class="empty">Загрузка…</td></tr>' : list.map(u => `<tr><td><b>${esc(u.login)}</b></td><td>${esc(u.name)}</td><td>${u.role==='admin'?'<span class="pill p-blue" style="margin:0">Администратор</span>':'<span class="pill" style="margin:0;background:#f4f4f5;color:#3f3f46">Просмотр</span>'}</td><td class="muted">${u.last ? new Date(u.last).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—'}</td><td class="muted">${u.consentAt ? new Date(u.consentAt).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—'}</td><td>${!u.disabled?'<span class="pill p-green" style="margin:0">Активен</span>':'<span class="pill p-red" style="margin:0">Заблокирован</span>'}</td>
+      <td style="text-align:right;white-space:nowrap"><button class="ibtn" data-act="reset" data-u="${esc(u.login)}">${ic('lock')}Пароль</button> ${u.login!==S.me.user?`<button class="ibtn" data-act="toggle-user" data-u="${esc(u.login)}">${u.disabled?'Разблокировать':'Заблокировать'}</button> <button class="ibtn" style="color:#dc2626" data-act="del-user" data-u="${esc(u.login)}">Удалить</button>`:''}</td></tr>`).join('')}</tbody>
+  </table></div></div>
+  <p class="muted" style="font-size:12px;margin-top:12px">Пользователи сайта хранятся отдельно от 1С. Администратор может задавать нормы вручную и управлять пользователями; «Просмотр» — только остатки и отчёты.</p>`;
+},
+
+settings() {
+  const t = S.data ? S.data.thresholds : {red:20,yellow:50,expiryWarnDays:60};
+  const dis = isAdmin() ? '' : 'disabled';
+  return `
+  <div class="page-h"><div><h2>Настройки</h2><p>Пороги индикатора и сроков годности</p></div></div>
+  ${isAdmin() ? '' : '<div class="ro">Изменять настройки может только администратор.</div>'}
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-h"><div><h2>Индикатор запаса</h2><p>Процент от последнего поступления</p></div></div>
+    <div class="set">
+      <label class="field">Красный «Мало», если меньше, %<input type="number" id="sRed" value="${t.red}" min="1" max="99" ${dis}></label>
+      <label class="field">Жёлтый «Меньше среднего», если меньше, %<input type="number" id="sYel" value="${t.yellow}" min="2" max="100" ${dis}></label>
+      <label class="field">Подсвечивать срок годности за, дней<input type="number" id="sExp" value="${t.expiryWarnDays}" min="1" max="730" ${dis}></label>
+    </div>
+    <div class="preview" id="pv"></div>
+  </div>
+  <div class="card" style="margin-bottom:20px">
+    <div class="card-h"><div><h2>Подключение к 1С</h2><p>Только чтение · данные запрашиваются при каждом открытии страницы</p></div></div>
+    <div class="set">
+      <label class="field">Адрес HTTP-сервиса<input value="${esc(S.data ? S.data.onecUrl : '')}" disabled></label>
+      <label class="field">Склады<input value="${esc(S.data ? S.data.warehouseCodes.split(',').join(', ') : '')}" disabled></label>
+      <label class="field">Пользователь 1С<input value="${esc(S.data ? S.data.onecUser : '')}" disabled></label>
+    </div>
+  </div>
+  ${isAdmin() ? `<button class="gbtn" data-act="save-set">${ic('check')}Сохранить</button>` : ''}`;
+},
+};
+
+function whLabel(){ return S.wh==='all' ? 'все склады' : 'склад '+S.wh; }
+function whSeg(){ return `<div class="seg">${[['all','Все склады'], ...WHS().map(w => [w, w])].map(([k,l]) => `<button class="${S.wh===k?'on':''}" data-wh="${k}">${l}</button>`).join('')}</div>`; }
+function expiryRows(){ return all().flatMap(i => i.series.filter(s => s.exp && s.qty > 0).map(s => ({...i, ser:s.s, sq:s.qty, sexp:s.exp, sd:s.d}))); }
+function sortRows(rows){
+  const k = S.sortK;
+  return rows.sort((a,b) => {
+    let x;
+    if (k === 'status') x = (RANK[a.st]-RANK[b.st]) || ((a.pct??999)-(b.pct??999));
+    else { const va=a[k], vb=b[k]; x = va==null&&vb==null?0:va==null?1:vb==null?-1: typeof va==='number'? va-vb : String(va).localeCompare(String(vb),'ru'); }
+    return S.asc ? x : -x;
+  });
+}
+function stockTable(rows, full) {
+  const th = (k,l,al='') => full ? `<th class="sort ${S.sortK===k?(S.asc?'asc':'desc'):''}" data-sort="${k}" style="${al}">${l}</th>` : `<th style="${al}">${l}</th>`;
+  return `<table><thead><tr>${th('name','Наименование')}${th('wh','Склад')}${th('qty','Остаток','text-align:right')}${th('norm','Поступление','text-align:right')}${th('pct','Уровень')}${th('ed','Срок годности')}${th('status','Статус')}</tr></thead>
+  <tbody>${rows.map(i => {
+    const open = full && S.open.has(i.id);
+    const normCell = isAdmin() && full ? `<span class="norm-edit" data-norm="${esc(i.id)}">${fmt(i.norm)}</span>` : fmt(i.norm);
+    return `<tr class="${full?'r':''}" data-row="${esc(i.id)}"><td>${esc(i.name)}<div class="sub">${esc(i.code)} · ${esc(i.group)}</div></td><td class="muted" title="${esc(i.whName)}">${i.whTag}</td>
+      <td class="n">${fmt(i.qty)} <span class="sub">${esc(i.unit)}</span></td>
+      <td class="n">${normCell}${i.manual?'<span class="tag-manual">вручную</span>':''}<div class="sub">${i.recDate?'от '+dmy(i.recDate):''}</div></td>
+      <td style="white-space:nowrap">${bar(i)}</td>
+      <td style="white-space:nowrap">${i.exp?`<span style="${i.expSt==='expired'?'color:#dc2626;font-weight:600':i.expSt==='soon'?'color:#d97706;font-weight:600':''}">${dmy(i.exp)}</span>`:'<span class="muted">—</span>'}</td>
+      <td>${pill(i.st)}</td></tr>
+      ${open?`<tr class="det"><td colspan="7"><div class="det-grid">
+        <div><h4>Серии · ${esc(i.whName)}</h4><table class="mini">${i.series.map(s=>`<tr><td>${esc(s.s)||'без серии'}</td><td class="n">${fmt(s.qty)} ${esc(i.unit)}</td><td>годен до ${dmy(s.exp)}</td></tr>`).join('')}</table></div>
+        <div><h4>Последнее поступление</h4>${i.rec?`<b>${fmt(i.rec)} ${esc(i.unit)}</b> — ${esc(i.recDoc)}`:'Поступлений не найдено'}${i.order?`<div style="margin-top:8px">Рекомендуется заказать: <b style="color:#4f46e5">+${fmt(i.order)} ${esc(i.unit)}</b></div>`:''}</div>
+      </div></td></tr>`:''}`;
+  }).join('') || '<tr><td colspan="7" class="empty">Ничего не найдено</td></tr>'}</tbody></table>`;
+}
+
+/* ================= СОБЫТИЯ ================= */
+function bind() {
+  const root = document.getElementById('root');
+  root.querySelectorAll('[data-go]').forEach(el => el.addEventListener('click', e => {
+    e.stopPropagation();
+    const o = {};
+    if (el.dataset.status !== undefined) { o.status = el.dataset.status; o.q = ''; }
+    if (el.dataset.q !== undefined) { o.q = el.dataset.q; o.status = ''; }
+    if (el.dataset.go !== S.route && el.dataset.status === undefined && el.dataset.q === undefined) o.q = '';
+    go(el.dataset.go, o);
+  }));
+  root.querySelectorAll('[data-wh]').forEach(el => el.onclick = () => { S.wh = el.dataset.wh; render(); });
+  root.querySelectorAll('[data-status-chip]').forEach(el => el.onclick = () => { S.status = el.dataset.statusChip; render(); });
+  root.querySelectorAll('[data-expf]').forEach(el => el.onclick = () => { S.expF = el.dataset.expf==='exp'?'exp':+el.dataset.expf; render(); });
+  root.querySelectorAll('[data-sort]').forEach(el => el.onclick = () => { const k = el.dataset.sort; S.asc = S.sortK===k ? !S.asc : true; S.sortK = k; render(); });
+  root.querySelectorAll('tr.r').forEach(el => el.onclick = e => { if (e.target.closest('[data-norm]')) return; const id = el.dataset.row; S.open.has(id)?S.open.delete(id):S.open.add(id); render(); });
+  root.querySelectorAll('[data-norm]').forEach(el => el.onclick = e => { e.stopPropagation(); normModal(el.dataset.norm); });
+  root.querySelectorAll('[data-sel]').forEach(el => el.onchange = () => { el.checked ? S.sel.add(el.dataset.sel) : S.sel.delete(el.dataset.sel); render(); });
+  const sa = document.getElementById('selAll'); if (sa) sa.onchange = () => { all().filter(i=>['red','yellow','error'].includes(i.st)).forEach(i => sa.checked ? S.sel.add(i.id) : S.sel.delete(i.id)); render(); };
+  const q = document.getElementById('q'); if (q) { q.oninput = () => { S.q = q.value; const pos = q.selectionStart; render(); const n = document.getElementById('q'); n.focus(); n.setSelectionRange(pos,pos); }; }
+  ['sRed','sYel'].forEach(id => { const el = document.getElementById(id); if (el) el.oninput = preview; }); preview();
+  root.querySelectorAll('[data-act]').forEach(el => el.addEventListener('click', e => { e.stopPropagation(); ACT[el.dataset.act]?.(el); }));
+}
+document.addEventListener('click', () => document.getElementById('menu')?.classList.remove('open'));
+function preview() {
+  const pv = document.getElementById('pv'); if (!pv) return;
+  const r = +document.getElementById('sRed').value || 0, y = +document.getElementById('sYel').value || 0;
+  pv.innerHTML = `<i style="width:${r}%;background:#ef4444"></i><i style="width:${Math.max(y-r,0)}%;background:#f59e0b"></i><i style="flex:1;background:#10b981"></i>`;
+  pv.title = `0–${r}% красный · ${r}–${y}% жёлтый · от ${y}% зелёный`;
+}
+async function loadUsers() { try { S.users = await api('/api/users'); } catch (e) { toast(e.message); S.users = []; } if (S.route === 'users') render(); }
+
+const STATUS_RU = st => ST[st][0];
+const ACT = {
+  notif(){ document.getElementById('nt') ? closeLow() : showLow(lowList(), false); },
+  mini(){ S.mini = !S.mini; try { localStorage.setItem('ls_mini', S.mini ? '1' : '0'); } catch {} render(); },
+  menu(){ document.getElementById('menu').classList.toggle('open'); },
+  async logout(){ try { await fetch('/api/logout', {method:'POST'}); } catch {} location.href = '/login.html'; },
+  profile(){ modal('Профиль', `<div>Логин: <b>${esc(S.me.user)}</b></div><div>Имя: <b>${esc(S.me.name)}</b></div><div>Роль: <b>${isAdmin()?'Администратор':'Просмотр'}</b></div><div class="muted">Сессия действует 12 часов</div>`, [['Закрыть']]); },
+  pass(){ modal('Сменить пароль', `<label class="field">Текущий пароль<input type="password" id="pOld" autocomplete="current-password"></label><label class="field">Новый пароль<input type="password" id="pNew" autocomplete="new-password" placeholder="не короче 8 символов"></label><label class="field">Повторите<input type="password" id="pNew2" autocomplete="new-password"></label><div class="err" id="mErr"></div>`,
+    [['Отмена'],['Сохранить', async () => { const n = val('pNew'); if (n !== val('pNew2')) return merr('Пароли не совпадают');
+      try { await api('/api/password', {body:{old:val('pOld'), password:n}}); toast('Пароль изменён'); } catch (e) { return merr(e.message); } }]]); },
+  refresh(){ if (!S.loading) loadStock(true).then(() => !S.error && toast('Данные обновлены из 1С')); },
+  'csv-all'(){ csvStock('ostatki', all()); },
+  'csv-view'(){ const q = S.q.toLowerCase(); csvStock('ostatki', sortRows(all().filter(i => (!S.status || i.st === S.status) && (!q || (i.name+' '+i.code).toLowerCase().includes(q))))); },
+  'csv-order'(){ csvOrder('k-zakazu', all().filter(i=>['red','yellow','error'].includes(i.st))); },
+  'csv-sel'(){ const r = all().filter(i => S.sel.has(i.id)); if (!r.length) return toast('Отметьте позиции галочками'); csvOrder('zayavka', r); },
+  'csv-exp'(){ csvExp('sroki', expiryRows().sort((a,b)=>a.sd-b.sd)); },
+  async report(el){
+    const a = el.dataset.rep, d = document.getElementById('d-'+a).value || today(), w = document.getElementById('w-'+a).value;
+    let items = ITEMS();
+    if (d !== today()) {
+      el.classList.add('spin'); el.disabled = true;
+      try { const j = await api('/api/stock?warehouse=&date=' + d); items = j.items.map(mapItem); }
+      catch (e) { toast(e.message); return; } finally { el.classList.remove('spin'); el.disabled = false; }
+    }
+    if (w !== 'all') items = items.filter(i => i.wh === w);
+    const sfx = `${w==='all'?'':w+'_'}${d}`;
+    if (a === 'all') csvStock('ostatki_'+sfx, items, true);
+    if (a === 'order') csvOrder('k-zakazu_'+sfx, items.filter(i=>['red','yellow','error'].includes(i.st)), true);
+    if (a === 'exp') csvExp('sroki_'+sfx, items.flatMap(i => i.series.filter(s => s.exp && s.qty > 0).map(s => ({...i, ser:s.s, sq:s.qty, sexp:s.exp, sd:s.d}))).sort((x,y)=>x.sd-y.sd), true);
+    if (a === 'rec') csv('postupleniya_'+sfx, ['Дата','Склад','Код','Наименование','Документ','Количество','Ед.'], items.filter(i=>i.rec).sort((x,y)=>String(y.recDate).localeCompare(String(x.recDate))).map(i => [i.recDate,i.whName,i.code,i.name,i.recDoc,num(i.rec),i.unit]), true);
+  },
+  'add-user'(){ modal('Новый пользователь', `<label class="field">Логин (латиницей)<input id="nuL" placeholder="например, laborant018" autocomplete="off"></label><label class="field">Имя<input id="nuN" placeholder="ФИО"></label><label class="field">Роль<select id="nuR"><option value="viewer">Просмотр</option><option value="admin">Администратор</option></select></label><label class="field">Пароль<input type="password" id="nuP" placeholder="не короче 8 символов" autocomplete="new-password"></label><div class="err" id="mErr"></div>`,
+    [['Отмена'],['Добавить', async () => { try { await api('/api/users', {body:{login:val('nuL'), name:val('nuN'), role:val('nuR'), password:val('nuP')}}); toast('Пользователь добавлен'); loadUsers(); } catch (e) { return merr(e.message); } }]]); },
+  'del-user'(el){ const login = el.dataset.u; modal('Удалить пользователя?', `<div>Пользователь <b>${esc(login)}</b> больше не сможет войти на сайт. Это действие нельзя отменить.</div><div class="err" id="mErr"></div>`,
+    [['Отмена'],['Удалить', async () => { try { await api('/api/users/delete', {body:{login}}); toast('Пользователь удалён'); loadUsers(); } catch (e) { return merr(e.message); } }]]); },
+  async 'toggle-user'(el){ try { const r = await api('/api/users/toggle', {body:{login:el.dataset.u}}); toast(r.disabled?'Пользователь заблокирован':'Пользователь разблокирован'); loadUsers(); } catch (e) { toast(e.message); } },
+  reset(el){ const login = el.dataset.u; modal('Новый пароль — '+esc(login), `<label class="field">Новый пароль<input type="password" id="rp" placeholder="не короче 8 символов" autocomplete="new-password"></label><div class="err" id="mErr"></div>`,
+    [['Отмена'],['Сохранить', async () => { try { await api('/api/users/password', {body:{login, password:val('rp')}}); toast('Пароль изменён'); } catch (e) { return merr(e.message); } }]]); },
+  async 'save-set'(){ try { await api('/api/settings', {body:{red:val('sRed'), yellow:val('sYel'), exp:val('sExp')}}); toast('Настройки сохранены — статусы пересчитаны'); loadStock(true); } catch (e) { toast(e.message); } },
+};
+const val = id => document.getElementById(id).value.trim();
+const merr = t => { const e = document.getElementById('mErr'); if (e) e.textContent = t; return false; };
+
+function normModal(id) {
+  const it = ITEMS().find(i => i.id === id); if (!it) return;
+  modal('Норма (100%) вручную', `<div><b>${esc(it.name)}</b><div class="sub">${esc(it.whName)}</div></div>
+    <div>Последнее поступление: <b>${fmt(it.rec)} ${esc(it.unit)}</b>${it.recDate?' от '+dmy(it.recDate):''}</div>
+    <label class="field">Норма вручную, ${esc(it.unit)}<input type="number" id="nv" min="0" step="any" value="${it.manual ? it.norm : ''}" placeholder="пусто — брать из поступления"></label><div class="err" id="mErr"></div>`,
+  [['Отмена'],['Сохранить', async () => { const v = val('nv');
+    try { await api('/api/norms', {body:{key:id, norm: v === '' ? null : Number(v)}}); toast(v ? 'Норма задана вручную' : 'Норма снова берётся из поступления'); loadStock(true); } catch (e) { return merr(e.message); } }]]);
+}
+function modal(title, body, buttons) {
+  const m = document.getElementById('modal'), ov = document.getElementById('ov');
+  m.innerHTML = `<div class="mh">${title}</div><div class="mb">${body}</div><div class="mf">${buttons.map((b,k) => `<button class="${k===buttons.length-1&&buttons.length>1?'gbtn':'btn2'}" data-k="${k}">${b[0]}</button>`).join('')}</div>`;
+  ov.classList.add('open');
+  m.querySelectorAll('[data-k]').forEach(el => el.onclick = async () => { const fn = buttons[+el.dataset.k][1]; if (fn) { el.disabled = true; const r = await fn(); el.disabled = false; if (r === false) return; } ov.classList.remove('open'); if (S.pending) { S.pending = false; render(); } });
+  const f = m.querySelector('input'); if (f) f.focus();
+}
+function closeModal() { document.getElementById('ov').classList.remove('open'); if (S.pending) { S.pending = false; render(); } }
+document.getElementById('ov').addEventListener('click', e => { if (e.target.id === 'ov') closeModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && modalOpen()) closeModal(); });
+let tt; function toast(t) { const el = document.getElementById('toast'); el.querySelector('span').textContent = t; el.classList.add('show'); clearTimeout(tt); tt = setTimeout(() => el.classList.remove('show'), 2600); }
+
+/* ================= ВЫГРУЗКА В EXCEL (CSV) ================= */
+const num = v => v == null ? '' : String(v).replace('.', ',');
+function csv(name, head, rows, named) {
+  const e = v => { const s = v == null ? '' : String(v); return /[";\n]/.test(s) ? '"'+s.replace(/"/g,'""')+'"' : s; };
+  const text = '﻿' + [head, ...rows].map(r => r.map(e).join(';')).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], {type:'text/csv;charset=utf-8'}));
+  a.download = named ? `${name}.csv` : `${name}_${today()}.csv`; document.body.appendChild(a); a.click(); a.remove();
+  toast(`Файл сформирован: ${rows.length} ${plural(rows.length,'строка','строки','строк')}`);
+}
+function csvStock(name, items, named) { csv(name, ['Склад','Код','Наименование','Группа','Ед.','Остаток','Поступление (100%)','Дата поступления','Норма вручную','Уровень, %','Статус','Заказать','Ближайший срок годности','Сумма'],
+  items.map(i => [i.whName,i.code,i.name,i.group,i.unit,num(i.qty),num(i.norm),i.recDate||'',i.manual?'да':'',num(i.pct),STATUS_RU(i.st),i.order?num(i.order):'',i.exp||'',num(i.sum)]), named); }
+function csvOrder(name, items, named) { csv(name, ['Склад','Код','Наименование','Ед.','Остаток','Поступление (100%)','Уровень, %','Заказать'],
+  items.map(i => [i.whName,i.code,i.name,i.unit,num(i.qty),num(i.norm),num(i.pct),num(i.order)]), named); }
+function csvExp(name, rows, named) { csv(name, ['Склад','Код','Наименование','Серия','Количество','Ед.','Годен до','Осталось дней'],
+  rows.map(r => [r.whName,r.code,r.name,r.ser,num(r.sq),r.unit,r.sexp,r.sd]), named); }
+
+/* ================= УВЕДОМЛЕНИЯ О МАЛЫХ ОСТАТКАХ ================= */
+const lowList = () => ITEMS().filter(i => i.st === 'red').sort((a, b) => (a.pct ?? 0) - (b.pct ?? 0));
+let ntKnown = null, ntTimer = null;
+// после загрузки: при входе — сводка; при автообновлении — только новые позиции
+function checkLow() {
+  const low = lowList(), ids = new Set(low.map(i => i.id));
+  if (!ntKnown) { ntKnown = ids; if (low.length) showLow(low, false); return; }
+  const fresh = low.filter(i => !ntKnown.has(i.id)); ntKnown = ids;
+  if (fresh.length) showLow(fresh, true);
+}
+function closeLow() {
+  const el = document.getElementById('nt'); if (!el) return;
+  el.classList.remove('in'); setTimeout(() => el.remove(), 200);
+}
+function showLow(list, isNew) {
+  document.getElementById('nt')?.remove();
+  if (!list.length) return;
+  const TOP = 5, n = list.length;
+  const el = document.createElement('div');
+  el.className = 'nt'; el.id = 'nt'; el.setAttribute('role', 'status'); el.setAttribute('aria-live', 'polite');
+  el.innerHTML = `
+    <div class="nt-h"><div class="nt-ic">${ic('warn')}</div>
+      <div class="nt-ht"><div class="nt-t">${isNew ? 'Новые позиции с малым остатком' : 'Заканчиваются реагенты'}</div>
+        <div class="nt-s">${n} ${plural(n, 'позиция', 'позиции', 'позиций')} — остаток «Мало, заказать»</div></div>
+      <button class="nt-x" data-nt="close" title="Закрыть">${ic('close')}</button></div>
+    <div class="nt-l">${list.slice(0, TOP).map(i => `
+      <div class="nt-i" data-nt="item" data-q="${esc(i.name)}">
+        <div class="nt-n"><span title="${esc(i.name)}">${esc(i.name)}</span><em>${esc(i.whTag)}</em></div>
+        <div class="nt-m"><span class="nt-bar"><i style="width:${Math.min(Math.max(i.pct ?? 0, 0), 100)}%"></i></span>
+          <span class="nt-q">${fmt(i.qty)}${i.unit ? ' ' + esc(i.unit) : ''}${i.norm ? ` из ${fmt(i.norm)}` : ''}</span><b>${i.pct ?? 0}%</b></div>
+      </div>`).join('')}
+      ${n > TOP ? `<div class="nt-more">и ещё ${n - TOP} ${plural(n - TOP, 'позиция', 'позиции', 'позиций')}</div>` : ''}</div>
+    <div class="nt-f"><span class="nt-time">Данные 1С на ${S.data && S.data.syncedAt ? new Date(S.data.syncedAt).toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'}) : new Date().toLocaleTimeString('ru-RU', {hour:'2-digit', minute:'2-digit'})}</span>
+      <div><button class="btn2" data-nt="close">Скрыть</button><button class="gbtn" data-nt="open">Открыть «К заказу»</button></div></div>`;
+  el.addEventListener('click', e => {
+    const a = e.target.closest('[data-nt]'); if (!a) return;
+    closeLow(); if (a.dataset.nt === 'open') go('order'); else if (a.dataset.nt === 'item') go('stock', { q: a.dataset.q, wh: 'all' });
+  });
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('in'));
+}
+
+/* ================= СОГЛАСИЕ ПОСЛЕ ВХОДА ================= */
+function showConsent() {
+  return new Promise(resolve => {
+    const ov = document.createElement('div');
+    ov.className = 'cs-ov'; ov.id = 'cs';
+    ov.innerHTML = `<div class="cs-modal" role="dialog" aria-modal="true" aria-labelledby="csT">
+      <div class="cs-h"><img src="/logo.jpg" alt="Логотип">
+        <div><div class="cs-t" id="csT">Перед началом работы</div><div class="cs-s">Склад централизованной лаборатории ГКИБ · склады 018 и 023</div></div></div>
+      <div class="cs-b">
+        <div>Сайт показывает остатки реагентов и медикаментов, загруженные из <b>1С</b>. Сайт только отображает данные — изменить их здесь нельзя.</div>
+        <div class="cs-pts">
+          <div class="cs-pt"><div class="cs-ic"><svg viewBox="0 0 24 24"><path d="M3 7h13l-3-3M21 17H8l3 3"/></svg></div>
+            <div>Остатки зависят от документов в 1С: <b>списаний, перемещений, требований-накладных и поступлений</b>. Пока документ не проведён в 1С, данные на сайте могут отличаться от фактического наличия.</div></div>
+          <div class="cs-pt"><div class="cs-ic"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div>
+            <div>Данные обновляются <b>каждые ${AUTO_MIN} минут</b>, поэтому возможна задержка.</div></div>
+          <div class="cs-pt"><div class="cs-ic"><svg viewBox="0 0 24 24"><path d="M9 12l2 2 4-4"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg></div>
+            <div>Перед заказом, списанием или отчётом <b>сверяйтесь с 1С</b> и фактическим наличием на складе.</div></div>
+        </div>
+        <div class="cs-warn"><svg viewBox="0 0 24 24"><path d="M12 3l9.5 17h-19z"/><path d="M12 10v4M12 17.5v.5"/></svg>
+          <div>Продолжая работу, вы подтверждаете, что используете данные этого сайта <b>на свой страх и риск</b>. Ответственность за решения, принятые на их основе, лежит на пользователе.</div></div>
+        <label class="cs-agree"><input type="checkbox" id="csChk"><span>Я ознакомлен(а) с условиями и согласен(на) использовать данные сайта на свой страх и риск</span></label>
+        <div class="err" id="csErr"></div>
+      </div>
+      <div class="cs-f"><div class="cs-note">Согласие запрашивается при каждом входе</div>
+        <div class="cs-btns"><button class="btn2" id="csOut">Выйти</button><button class="gbtn" id="csGo" disabled>Принимаю и продолжаю</button></div></div>
+    </div>`;
+    document.body.appendChild(ov);
+    document.body.classList.add('cs-lock');
+    const chk = ov.querySelector('#csChk'), go = ov.querySelector('#csGo');
+    chk.addEventListener('change', () => { go.disabled = !chk.checked; });
+    ov.querySelector('#csOut').onclick = () => ACT.logout();
+    go.onclick = async () => {
+      go.disabled = true;
+      try { await api('/api/consent', { body: {} }); S.me.consent = true; ov.remove(); document.body.classList.remove('cs-lock'); resolve(); }
+      catch (e) { ov.querySelector('#csErr').textContent = e.message; go.disabled = false; }
+    };
+    chk.focus();
+  });
+}
+
+/* ================= СТАРТ ================= */
+(async () => {
+  const h = location.hash.slice(1); if (TITLE[h]) S.route = h;
+  try { S.me = await api('/api/me'); } catch { return; }
+  render();
+  if (!S.me.consent) await showConsent();
+  if (S.route === 'users' && isAdmin()) loadUsers();
+  loadStock(); // синхронизация с 1С при каждом открытии/обновлении страницы
+})();
+</script>
+</body>
+</html>

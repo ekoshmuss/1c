@@ -14,3 +14,14 @@
 *.bak
 Thumbs.db
 desktop.ini
+
+# Secrets and server data (never store in Git)
+.env
+*.env
+**/app/data/
+*.pfx
+*.pem
+*.key
+*.bak_*
+backup_*/
+node_modules/
